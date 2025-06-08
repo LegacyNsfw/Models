@@ -1,3 +1,5 @@
+$fn = 50;
+
 podRadius = 52/2;
 podDepth = 20;
 podHoleRadius = 23;
@@ -8,7 +10,7 @@ bezelHeight = 10;
 boardWidth = 57;
 boardDepth = 36;
 boardThickness = 6.5;
-holeX = 25;
+holeX = 25.5;
 holeY = 15;
 cornerRadius = 6;
 
@@ -55,12 +57,23 @@ module top()
         translate([0, 0, 2.9])
             cube([boardWidth, 25, 6], center = true);
 
+        // bolts
         translate([0, boltPosition, 0])
             cylinder(h = 100, r = 1.7, center = true);
         translate([0, -boltPosition, 0])
             cylinder(h = 100, r = 1.7, center = true);
 
+        // bolt heads
+        translate([0, boltPosition, 9])
+            cylinder(h = 3, r = 2.5, center = true);
+        translate([0, -boltPosition, 9])
+            cylinder(h = 3, r = 2.5, center = true);
+
+        // ribbon connector
+        translate([0, 15, 3])
+            cube([15, 6, 3], center = true);
     }    
+
 }
 
 module display()
@@ -73,10 +86,18 @@ module base()
 {
     difference() {
         union () {
+            // bolt bosses
             translate([0, boltPosition, -podDepth / 2])
                 cylinder(h = podDepth, r = 4, center = true);
             translate([0, -boltPosition, -podDepth / 2])
                 cylinder(h = podDepth, r = 4, center = true);
+            
+            // crossbar
+            translate([0, 0, -podDepth + 2.5])
+                rotate([0, 0, 90])
+                cube([podRadius * 2 - 2, 5, 5], center = true);
+            
+            // sleeve
             difference(){
                 union () {
                     translate([0, 0, -podDepth / 2])
@@ -85,13 +106,16 @@ module base()
                 cylinder (h = 100, r = podHoleRadius, center = true);
             }
         }
+        
+        // bolt holes
         translate([0, boltPosition, 0])
-            cylinder(h = 100, r = 1.4, center = true);
+            cylinder(h = 100, r = 1.2, center = true);
         translate([0, -boltPosition, 0])
-            cylinder(h = 100, r = 1.4, center = true);
+            cylinder(h = 100, r = 1.2, center = true);
     }
 }
 
+// You'll probably want to comment out the top() or bottom() to print them separately.
 difference() {
     union () {
         //top();

@@ -1,89 +1,132 @@
+gaugeDiameter = 52.8; // 52.4 was too small
+gaugeRadius = gaugeDiameter / 2;
+
+module gauge() {
+    rotate([90, 0, 0]) {
+    cylinder (r = gaugeRadius, h = 20, center = true);
+    //cylinder (r = 31, h = 10, center = true);
+    }
+}
+
+module gauges() {
+    color("red") {
+        translate([1.5, 0, -16]) {
+                
+            translate([-54, 0, 3]) 
+            gauge();
+            
+            translate([54, 0, 3])
+            gauge();
+                
+            translate([0, 0, 34])
+            gauge();
+        }
+    }
+}
+
+
+$fn = 50;
+
 // width = left to right
 // depth = front to back
 // height = top to bottom
 
-bracketWidth = 33;
-bracketDepth = 70;
-overallHeight = 70;
-frontThickness = 3.5;
-sideThickness = 3.5;
+boxInsideWidth = 186;
+boxDepth = 15;
+earWidth = 30;
+earThickness = 3.5;
+earHeight = 45;
+overallWidth = boxInsideWidth + 2 * earWidth;
 
-dinSlotWidth = 30;
-dinSlotHeight = 50;
-dinSlotWallThickness = 3.5;
-dinSlotOutsideHeight = (dinSlotWallThickness * 2) + dinSlotHeight;
+boxInsideHeight = 93;
+boxWallThickness = 3.5;
+boxOutsideHeight = (boxWallThickness * 2) + boxInsideHeight;
 
-$fn = 20;
+// boxOutsideWidth = 183;
+boxOutsideWidth = (boxWallThickness * 2) + boxInsideWidth;
 
-module bracket() {
-    translate([bracketWidth / 2, 0, overallHeight/2])
+
+//gaugeD = 52.8; // 52.4 was too small
+//gaugeR = gaugeD / 2;
+
+slotWidth = 5;
+
+
+module box()
+{
+    translate([0, boxDepth / 2, 0])    
     {
-    difference() {
-        cube([bracketWidth, bracketDepth, overallHeight], center = true);
-        translate([sideThickness, frontThickness, 0])
-            cube([bracketWidth, bracketDepth, overallHeight + 1], center = true);
-        
+        difference ()
+        {
+            cube([boxOutsideWidth, boxDepth, boxOutsideHeight], center = true);
+            translate([0, boxWallThickness, 0])
+            cube([boxInsideWidth, boxDepth, boxInsideHeight], center = true);
+        }
+    }
+}
 
+module ear(y, slotX)
+{
+    difference() {
+        translate([0, earThickness / 2, 0])    
+            cube([earWidth, earThickness, earHeight], center = true);
         
-        translate([0, -bracketDepth / 2, -(overallHeight/2) + (overallHeight - dinSlotHeight - dinSlotWallThickness)])
+        a = -y + 1 ; //-y + boxOutsidthHeight / 2 - 55;
+        translate([slotX, 0, -y + 1])
         {
             // bottom slot
             union () {
-                cube([10, 20, 6], center = true);
-                translate([5, 0, 0])
+                cube([slotWidth, 20, 6.5], center = true);
+                translate([slotWidth/2, 0, 0])
                     rotate([90, 0, 0])
-                        cylinder(h = 20, r = 3, center = true);
-                translate([-5, 0, 0])
+                        cylinder(h = 20, r = 3.25, center = true);
+                translate([-slotWidth/2, 0, 0])
                     rotate([90, 0, 0])
-                    cylinder(h = 20, r = 3, center = true);
+                    cylinder(h = 20, r = 3.25, center = true);
             }
 
-            // top slot left
-            translate([0, 0, 15])
+            // middle slot (used on right side)
+            translate([0, 0, 13])
             union () {
-                cube([10, 20, 5], center = true);
-                translate([5, 0, 0])
+                cube([slotWidth, 20, 5], center = true);
+                translate([slotWidth/2, 0, 0])
                     rotate([90, 0, 0])
                         cylinder(h = 20, r = 2.5, center = true);
-                translate([-5, 0, 0])
+                translate([-slotWidth/2, 0, 0])
                     rotate([90, 0, 0])
                     cylinder(h = 20, r = 2.5, center = true);
             }
 
-            // top slot right
-            translate([0, 0, 22])
+            // top slot (used on left side)
+            translate([0, 0, 21.5])
             union () {
-                cube([10, 20, 5], center = true);
-                translate([5, 0, 0])
+                cube([slotWidth, 20, 5], center = true);
+                translate([slotWidth/2, 0, 0])
                     rotate([90, 0, 0])
                         cylinder(h = 20, r = 2.5, center = true);
-                translate([-5, 0, 0])
+                translate([-slotWidth/2, 0, 0])
                     rotate([90, 0, 0])
                     cylinder(h = 20, r = 2.5, center = true);
             }
-        }
+        }        
     }
-    }
-    
-    // side hole
-    //translate([0, 30, overallHeight - dinSlotWallThickness - 25])
-    //rotate([0, 90, 0])
-    //cylinder (r = 2, h = 10, center = true);
-    
 }
 
-module dinSleeve() {
-    translate([-dinSlotWidth /2, 0, overallHeight - dinSlotOutsideHeight + (dinSlotOutsideHeight / 2)])
+
+
+color("yellow") {
     difference() {
-        cube([dinSlotWidth, bracketDepth, dinSlotOutsideHeight], center = true);
-        translate([-.1, 0, 0])
-            cube([dinSlotWidth + .2, bracketDepth + 1, dinSlotHeight], center = true);
-        
+        box();
+        gauges();
     }
-}
 
-union() {
-    bracket();
-    dinSleeve();
+    // Ear position is fixed regardless of box size
+    earX = 183 / 2 + earWidth / 2;
+    earSlotX = 6.5;
+    earY = boxOutsideHeight / 2 - earHeight / 2 - 15;
+    
+    translate([earX, 0, earY])
+        ear(earY, earSlotX);
+    translate([-earX, 0, earY])
+        ear(earY, -earSlotX);
 }
-
