@@ -1,5 +1,7 @@
+#include <SPI.h>
 #include <Adafruit_GFX.h>    // Core graphics library
 #include <Adafruit_ST7735.h> // Hardware-specific library for ST7735
+#include <Fonts/FreeMonoBold24pt7b.h>
 #include "History.h"
 
 // Color definitions
@@ -11,6 +13,12 @@
 #define MAGENTA  0xF81F
 #define YELLOW   0xFFE0 
 #define WHITE    0xFFFF
+
+#define RGB(red,green,blue) (((red & 0xf8)<<8) + ((green & 0xfc)<<3)+(blue>>3))
+#define GREY      RGB(0x80, 0x80, 0x80)
+#define LIGHTGREY RGB(0x40, 0x40, 0x40)
+#define VERYLIGHTGREY RGB(0x20, 0x20, 0x20) // barely visible
+#define LIGHTBLUE RGB(0x40, 0x40, 0xFF)
 
 // Pin configuration
 #define TFT_CS        0
@@ -36,9 +44,14 @@ History history = History(width);
 
 void setup() 
 {
+  delay(100);
   Serial.begin(9600);
   Serial.print(F("CAN Display starting..."));
   TestHistory();
+
+  SPI.begin();  
+  SPI.beginTransaction(SPISettings(24 * 1000 * 1000, MSBFIRST, SPI_MODE0));
+  //SPI.setClockDivider(4);
 
   // https://learn.adafruit.com/1-8-tft-display/breakout-wiring-and-test 
   tft.initR(INITR_BLACKTAB);      // Init ST7735S chip, black tab
@@ -65,22 +78,68 @@ void loop() {
 
   if (rise == 1)
   {
-    value++;
+    value+=2;
   }
   else 
   {
-    value--;
+    value-=2;
   }
 
   history.push(value);
   history.push(value);
-
-  char scratch[15];
+  
+/*  char scratch[15];
   itoa(value, scratch, 10);
   Serial.print(scratch);
   Serial.print(F("\n"));
+*/
 
-  // The XIAO SAMD21 doesn't have enough RAM to buffer the entire display
+
+  // Or the top half and then the bottom half
+  canvas.fillScreen(BLACK);
+
+  canvas.setFont(&FreeMonoBold24pt7b);
+  canvas.setCursor(30, 48);
+  canvas.setTextColor(LIGHTGREY);
+  canvas.print(F("255"));
+
+  DrawHistoryTop(&history, LIGHTBLUE);
+  tft.drawRGBBitmap(0, 0, canvas.getBuffer(), width, height/2);
+
+  canvas.fillScreen(BLACK);
+  DrawHistoryBottom(&history, YELLOW);
+  tft.drawRGBBitmap(0, height / 2, canvas.getBuffer(), width, height/2);
+}
+
+void DrawHistoryTop(History *pHistory, uint16_t color)
+{
+  for (int x = 0; x < width; x++)
+  {
+    int y = pHistory->get(width - x);
+    if (y > height / 2)
+    {
+      canvas.drawPixel(x, height - y, color);
+      canvas.drawPixel(x, (height - y) - 1, color);
+    }
+  }
+}
+
+void DrawHistoryBottom(History *pHistory, uint16_t color)
+{
+  for (int x = 0; x < width; x++)
+  {
+    int y = pHistory->get(width - x);
+    if (y <= height / 2)
+    {
+      canvas.drawPixel(x, height / 2 - y, color);
+      canvas.drawPixel(x, (height / 2 - y) - 1, color);    
+    }
+  }
+}
+
+void DrawLeftThenRight()
+{
+    // The XIAO SAMD21 doesn't have enough RAM to buffer the entire display
   // So we do the left half and then the right half.
   /*
   canvas.fillScreen(BLACK);
@@ -99,31 +158,6 @@ void loop() {
   }
   tft.drawRGBBitmap(width/2, 0, canvas.getBuffer(), width/2, height);  
   */
-
-  // Or the top half and then the bottom half
-  canvas.fillScreen(BLACK);
-  for (int x = 0; x < width; x++)
-  {
-    int y = history.get(width - x);
-    if (y > height / 2)
-    {
-      canvas.drawPixel(x, height - y, WHITE);
-      canvas.drawPixel(x, (height - y) - 1, WHITE);
-    }
-  }
-  tft.drawRGBBitmap(0, 0, canvas.getBuffer(), width, height/2);
-
-  canvas.fillScreen(BLACK);
-  for (int x = 0; x < width; x++)
-  {
-    int y = history.get(width - x);
-    if (y <= height / 2)
-    {
-      canvas.drawPixel(x, height / 2 - y, WHITE);
-      canvas.drawPixel(x, (height / 2 - y) - 1, WHITE);    
-    }
-  }
-  tft.drawRGBBitmap(0, height / 2, canvas.getBuffer(), width, height/2);
 }
 
 char scratch[15];
