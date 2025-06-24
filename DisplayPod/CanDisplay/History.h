@@ -26,12 +26,12 @@ public:
 
   int push(int value)
   {
-    buffer[currentIndex] = value;
     currentIndex++;
     if (currentIndex == size)
     {
       currentIndex = 0;
     }
+    buffer[currentIndex] = value;
   }
 };
 
