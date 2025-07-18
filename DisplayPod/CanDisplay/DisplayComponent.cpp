@@ -1,6 +1,17 @@
+// To use hardware SPI With the ESP32c3, get this version of the TFT_eSPI library:
+// https://github.com/AndroidCrypto/TFT_eSPI?tab=readme-ov-file
+// Use the "Download ZIP" option under the Code button, unzip it, and put the directory in your "Arduino/libraries" folder.
+// Add this line to the User_Setup_Select.h file in the library:
+// #include <My_User_Setups/Setup702_C3_SM_ST7735_128x160.h>
+// For more information:
+// https://medium.com/@androidcrypto/getting-started-with-an-esp32-c3-supermini-device-connected-to-an-st7735-tft-display-6ba1a1027a88
+
+#include "SPI.h"
+#include "TFT_eSPI.h"
+
 #include <Adafruit_GFX.h>    // Core graphics library
-#include <Adafruit_ST7735.h> // Hardware-specific library for ST7735
-#include <Fonts/FreeMonoBold24pt7b.h>
+//#include <Adafruit_ST7735.h> // Hardware-specific library for ST7735
+//#include <Fonts/FreeMonoBold24pt7b.h>
 #include "History.h"
 #include "DisplayComponent.h"
 
@@ -13,7 +24,8 @@
     #define TFT_RST D2
     #define TFT_MOSI D10
     #define TFT_SCLK D8  
-    Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RST);
+    //Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RST);
+    TFT_eSPI tft = TFT_eSPI();
 
 #elif SEEED_XIAO_M0
     #warning Display = Xiao SAMD21
@@ -44,7 +56,7 @@ void DisplayComponent::initialize()
 #endif
 
   // https://learn.adafruit.com/1-8-tft-display/breakout-wiring-and-test 
-  tft.initR(INITR_BLACKTAB);      // Init ST7735S chip, black tab
+  tft.init(INITR_BLACKTAB);      // Init ST7735S chip, black tab
 
   // landscape, through-holes on left side
   tft.setRotation(3);
@@ -70,7 +82,7 @@ void DisplayComponent::draw(History *pHistory, int temperature)
   canvas.print(szTemperature);
 
   drawHistoryTop(pHistory, LIGHTBLUE);
-  tft.drawRGBBitmap(0, 0, canvas.getBuffer(), width, height/2);
+  tft.drawBitmap(0, 0, canvas.getBuffer(), width, height/2);
 
   canvas.fillScreen(BLACK);
   drawHistoryBottom(pHistory, YELLOW);
