@@ -4,8 +4,30 @@
 #include "History.h"
 #include "DisplayComponent.h"
 
-// Use hardware SPI
-Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS,  TFT_DC, TFT_RST);
+#define ARDUINO_SEEED_XIAO_ESP32C3
+
+#ifdef ARDUINO_SEEED_XIAO_ESP32C3
+    #warning Display = Xiao ESP32C3
+    #define TFT_DC D1
+    #define TFT_CS D0
+    #define TFT_RST D2
+    #define TFT_MOSI D10
+    #define TFT_SCLK D8  
+    Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RST);
+
+#elif SEEED_XIAO_M0
+    #warning Display = Xiao SAMD21
+
+    // Pin configuration
+    #define TFT_CS        0
+    #define TFT_RST       -1 // not used
+    #define TFT_DC        1
+    Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS,  TFT_DC, TFT_RST);
+
+#else
+    #warning Display is not configured, see DisplayComponent.cpp
+#endif
+
 
 // Left/right split
 //GFXcanvas16 canvas(width/2, height);
@@ -14,6 +36,13 @@ GFXcanvas16 canvas(width, height/2);
 
 void DisplayComponent::initialize()
 {
+  Serial.print("Display: ");
+#ifdef SEEED_XIAO_M0  
+  Serial.printf("Clock %d\r\n", F_CPU);
+  Serial.printf("SPI   %d\r\n", MAX_SPI);
+  Serial.printf("divid %d\r\n", SPI_MIN_CLOCK_DIVIDER);
+#endif
+
   // https://learn.adafruit.com/1-8-tft-display/breakout-wiring-and-test 
   tft.initR(INITR_BLACKTAB);      // Init ST7735S chip, black tab
 
@@ -22,6 +51,8 @@ void DisplayComponent::initialize()
 
   tft.fillScreen(BLACK);
   canvas.fillScreen(BLACK);
+
+  Serial.println("Initialized.");
 }
 
 void DisplayComponent::draw(History *pHistory, int temperature)

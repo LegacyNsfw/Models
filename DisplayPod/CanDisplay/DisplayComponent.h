@@ -14,11 +14,6 @@
 #define VERYLIGHTGREY RGB(0x20, 0x20, 0x20) // barely visible
 #define LIGHTBLUE RGB(0x40, 0x40, 0xFF)
 
-// Pin configuration
-#define TFT_CS        0
-#define TFT_RST       -1 // not used
-#define TFT_DC        1
-
 const int width = 160;
 const int height = 128;
 
